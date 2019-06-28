@@ -12,8 +12,8 @@
 */
 
 $router->get('/', function () use ($router) {
-    return str_random(32);
-    // return $router->app->version();
+    // return str_random(32);
+    return 'Unauthorized';
 });
 
 $router->get('key',function(){
@@ -24,10 +24,11 @@ $router->get('key',function(){
 $router->post('/register', ['as' => 'user.register', 'uses' => 'AuthController@register']);
 $router->post('/login', ['as' => 'user.login', 'uses' => 'AuthController@login']);
 $router->get('/user[/{id}]', ['as' => 'user.show', 'uses' => 'AuthController@show']);
+$router->delete('/user[/{id}]', ['as' => 'user.destroy', 'uses' => 'AuthController@destroy']);
+$router->get('/logout', ['as' => 'user.logout', 'uses' => 'AuthController@logout']);
 
 // TEMPLATE
 $router->get('templates', ['as' => 'templates.index', 'uses' => 'TemplateController@index']);
-
 $router->get('checklists', ['as' => 'checklist.index', 'uses' => 'ChecklistController@index']);
 
 // ITEMS

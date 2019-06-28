@@ -15,7 +15,7 @@ class CreateItemattributeTable extends Migration
     {
         Schema::create('itemattributes', function (Blueprint $table) {
             $table->unsignedInteger('item_id');
-            $table->string('description');
+            $table->string('description')->required();
             $table->boolean('is_completed');
             $table->timestamp('completed_at')->nullable();
             $table->unsignedInteger('updated_by')->nullable();

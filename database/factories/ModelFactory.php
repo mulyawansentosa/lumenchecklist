@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Hash;
 | database. Just tell the factory how a default model should look.
 |
 */
-/*
 $factory->define(App\User::class, function (Faker\Generator $faker) {
     return [
         'name' => $faker->name,
@@ -20,7 +19,6 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
         'password'   => Hash::make(str_random(10))
     ];
 });
-*/
 
 // ========= TEMPLATE FACTORY ========= //
 $factory->define(App\Models\Template\Eloquent\TemplateModel::class, function (Faker\Generator $faker) {

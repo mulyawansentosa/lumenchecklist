@@ -3,19 +3,18 @@
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
-class ExampleTest extends TestCase
+class IndexTest extends TestCase
 {
     /**
      * A basic test example.
      *
      * @return void
      */
-    public function testExample()
+    public function testIndex_accessed_without_credential()
     {
         $this->get('/');
-
         $this->assertEquals(
-            $this->app->version(), $this->response->getContent()
+            'Unauthorized', $this->response->getContent()
         );
     }
 }

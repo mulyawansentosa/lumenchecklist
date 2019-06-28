@@ -13,7 +13,7 @@ class CreateItemTable extends Migration
      */
     public function up()
     {
-        Schema::create('items', function (Blueprint $table) {
+        Schema::create('items', function (Blueprint $table){
             $table->bigIncrements('id');
             $table->unsignedInteger('checklist_id');
             $table->string('type');
