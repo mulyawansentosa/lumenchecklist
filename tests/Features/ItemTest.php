@@ -7,6 +7,7 @@ use App\User;
 use Illuminate\Http\Request;
 use App\Models\Item\Item;
 use App\Models\Checklist\Checklist;
+use App\Models\Checklist\Eloquent\ChecklistModel;
 
 class ItemTest extends TestCase
 {
@@ -18,6 +19,65 @@ class ItemTest extends TestCase
 
     public function testShow_complete_items()
     {
+        try{
+            $faker              = Faker\Factory::create();
+            $name               = $faker->name;
+            $email              = $faker->email;
+            $password           = $faker->password;
+            $token              = base64_encode(str_random(40));
+            $user               = App\User::create(
+                                    [
+                                        'name'      => $name,
+                                        'email'     => $email,
+                                        'password'  => Hash::make($password),
+                                        'api_token' => $token
+                                    ]
+                                );
+            $type               = $faker->jobTitle;
+            $checklist_id       = App\Models\Checklist\Eloquent\ChecklistModel::create(
+                                    'che'
+                                );
+            $checklist          = App\Models\Item\Item::create(
+                [
+                    'checklist_id'  => App\Models\Checklist\Eloquent\ChecklistModel::first()->id,
+                    'type'          => $faker->jobTitle
+                ]
+            );
+            $item               = App\Models\Item\Item::create(
+                                    [
+                                        'checklist_id'  => App\Models\Checklist\Eloquent\ChecklistModel::first()->id,
+                                        'type'          => $faker->jobTitle
+                                    ]
+                                );
+            $testCase           = array (
+                                'data'      => array(
+
+                                            )
+                                );
+            $status             = (array)$this->get('/user/'.$user->id, ['HTTP_Authorization' => 'bearer '.$token]);
+            $data               = (array)json_decode($this->response->getContent(),true);
+            if(sizeof($data)>0 AND $data['success'] == true){
+                $result             = array(
+                                    'success'   => $data['success'],
+                                    'code'      => $data['code'],
+                                    'message'   => $data['message'],
+                                    'data'      => array(
+                                                'name'      => $data['data']['name'],
+                                                'email'     => $data['data']['email']
+                                                )
+                                );
+                App\User::destroy($user->id);                    
+                $this->assertArraySubset(
+                    $testCase, $result
+                );    
+            }else{
+                throw new Exception('Responses: Error on Sending Header Data');
+            }                
+        }catch(\Exception $e){
+            $this->expectException($e->getMessage());
+        }
+
+
         // $data       = $this->items->showtemplate();
         // if($data){
         //     return response()->json(

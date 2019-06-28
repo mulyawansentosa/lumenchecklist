@@ -14,10 +14,11 @@ class CreateItemlinkTable extends Migration
     public function up()
     {
         Schema::create('itemlinks', function (Blueprint $table) {
-            $table->unsignedInteger('item_id');
-            $table->string('self');
+            $table->bigInteger('item_id')->unsigned();
+            $table->string('self')->require();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
+            $table->foreign('item_id')->references('id')->on('items')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

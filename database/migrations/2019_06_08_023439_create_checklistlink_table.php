@@ -14,10 +14,11 @@ class CreateChecklistlinkTable extends Migration
     public function up()
     {
         Schema::create('checklistlinks', function (Blueprint $table) {
-            $table->unsignedInteger('checklist_id');
-            $table->string('self');
+            $table->bigInteger('checklist_id')->unsigned();
+            $table->string('self')->require();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
+            $table->foreign('checklist_id')->references('id')->on('checklists')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

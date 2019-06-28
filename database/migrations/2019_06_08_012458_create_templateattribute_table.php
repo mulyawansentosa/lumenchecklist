@@ -14,10 +14,11 @@ class CreateTemplateattributeTable extends Migration
     public function up()
     {
         Schema::create('templateattributes', function (Blueprint $table) {
-            $table->unsignedInteger('template_id');
-            $table->string('name');
+            $table->bigInteger('template_id')->unsigned();
+            $table->string('name')->require();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
+            $table->foreign('template_id')->references('id')->on('templates')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

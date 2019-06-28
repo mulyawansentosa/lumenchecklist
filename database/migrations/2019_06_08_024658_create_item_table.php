@@ -15,8 +15,8 @@ class CreateItemTable extends Migration
     {
         Schema::create('items', function (Blueprint $table){
             $table->bigIncrements('id');
-            $table->unsignedInteger('checklist_id');
-            $table->string('type');
+            $table->bigInteger('checklist_id')->require();
+            $table->string('type')->require();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
         });
@@ -29,6 +29,12 @@ class CreateItemTable extends Migration
      */
     public function down()
     {
+        Schema::table('itemattributes', function (Blueprint $table){
+            $table->dropForeign('itemattributes_item_id_foreign');
+        });
+        Schema::table('itemlinks', function (Blueprint $table){
+            $table->dropForeign('itemlinks_item_id_foreign');
+        });
         Schema::dropIfExists('items');
     }
 }

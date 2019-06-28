@@ -21,22 +21,33 @@ class ItemController extends Controller{
 
     public function index()
     {
-        $data       = $this->items->showtemplate();
-        if($data){
+        try{
+            $data       = $this->items->showtemplate();
+            if($data){
+                return response()->json(
+                    [
+                        // 'status'    => true,
+                        // 'message'   => 'List of Company',
+                        'data'      => $data
+                    ],200
+                );
+            }else{
+                return response()->json(
+                    [
+                        // 'stataus'   => false,
+                        // 'message'   => 'Error Getting List of Company',
+                        'data'      => null
+                    ],400
+                );
+            }
+        }catch(\Exception $e){
             return response()->json(
                 [
-                    'status'    => true,
-                    'message'   => 'List of Company',
-                    'data'      => $data
-                ],200
-            );
-        }else{
-            return response()->json(
-                [
-                    'stataus'   => false,
-                    'message'   => 'Error Getting List of Company',
-                    'data'      => null
-                ],400
+                    'success'   => false,
+                    'code'      => 500,
+                    'message'   => $e->getMessage(),
+                    'data'      => []
+                ], 500
             );
         }
     }
@@ -73,18 +84,25 @@ class ItemController extends Controller{
 
     public function completeitems(Request $request)
     {
-        $req                    = json_decode($request->getContent(),true);
-        $datas                  = $req['data'];
-        if(is_array($datas)){
-            $result             = $this->items->completeitems($datas);
-            if($result){
-                return response()->json(
-                    [
-                        'data'   => $result
-                    ],200
-                );
+        try{
+            $req                    = json_decode($request->getContent(),true);
+            $datas                  = $req['data'];
+            if(is_array($datas)){
+                $result             = $this->items->completeitems($datas);
+                if($result){
+                    return response()->json(
+                        [
+                            'data'   => $result
+                        ], 200
+                    );
+                }
             }
-    
+        }catch(\Exception $e){
+            return response()->json(
+                [
+                    'data'      => []
+                ], 500
+            );
         }
     }
 

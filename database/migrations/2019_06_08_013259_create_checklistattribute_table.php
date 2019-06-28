@@ -14,10 +14,10 @@ class CreateChecklistattributeTable extends Migration
     public function up()
     {
         Schema::create('checklistattributes', function (Blueprint $table) {
-            $table->unsignedInteger('checklist_id');
-            $table->string('object_domain');
-            $table->unsignedInteger('object_id');
-            $table->string('description');
+            $table->bigInteger('checklist_id')->unsigned();
+            $table->string('object_domain')->require();
+            $table->unsignedInteger('object_id')->require();
+            $table->string('description')->require();
             $table->boolean('is_completed');
             $table->timestamp('completed_at')->nullable();
             $table->unsignedInteger('updated_by')->nullable();
@@ -25,6 +25,7 @@ class CreateChecklistattributeTable extends Migration
             $table->tinyInteger('urgency');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
+            $table->foreign('checklist_id')->references('id')->on('checklists')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

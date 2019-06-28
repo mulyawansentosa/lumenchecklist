@@ -15,8 +15,8 @@ class CreateChecklistTable extends Migration
     {
         Schema::create('checklists', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedInteger('template_id');
-            $table->string('type');
+            $table->bigInteger('template_id')->require();
+            $table->string('type')->require();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
         });
@@ -29,6 +29,12 @@ class CreateChecklistTable extends Migration
      */
     public function down()
     {
+        Schema::table('checklistattributes', function (Blueprint $table){
+            $table->dropForeign('checklistattributes_checklist_id_foreign');
+        });
+        Schema::table('checklistlinks', function (Blueprint $table){
+            $table->dropForeign('checklistlinks_checklist_id_foreign');
+        });
         Schema::dropIfExists('checklists');
     }
 }

@@ -15,7 +15,7 @@ class CreateTemplateTable extends Migration
     {
         Schema::create('templates', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('type');
+            $table->string('type')->require();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
         });
@@ -28,6 +28,12 @@ class CreateTemplateTable extends Migration
      */
     public function down()
     {
+        Schema::table('templateattributes', function (Blueprint $table){
+            $table->dropForeign('templateattributes_template_id_foreign');
+        });
+        Schema::table('templatelinks', function (Blueprint $table){
+            $table->dropForeign('templatelinks_template_id_foreign');
+        });
         Schema::dropIfExists('templates');
     }
 }

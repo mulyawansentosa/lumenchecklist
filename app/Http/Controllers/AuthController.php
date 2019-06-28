@@ -203,7 +203,7 @@ class AuthController extends Controller
             }else{
                 return response()->json(
                     [
-                        'success'   => true,
+                        'success'   => false,
                         'code'      => 200,
                         'message'   => 'Data not found',
                         'data'      => []
@@ -224,10 +224,6 @@ class AuthController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $data                   = $request->header();
-        $auth                   = $data['authorization'];
-        var_dump($auth);
-        /*
         try{
             if(is_null($id)){
                 return response()->json(
@@ -263,7 +259,7 @@ class AuthController extends Controller
                 }else{
                     return response()->json(
                         [
-                            'success'   => true,
+                            'success'   => false,
                             'code'      => 200,
                             'message'   => 'Data is not found',
                             'data'      => []
@@ -281,6 +277,5 @@ class AuthController extends Controller
                 ], 500
             );
         }
-        */
     }    
 }

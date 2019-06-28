@@ -14,7 +14,7 @@ class CreateItemattributeTable extends Migration
     public function up()
     {
         Schema::create('itemattributes', function (Blueprint $table) {
-            $table->unsignedInteger('item_id');
+            $table->bigInteger('item_id')->unsigned();
             $table->string('description')->required();
             $table->boolean('is_completed');
             $table->timestamp('completed_at')->nullable();
@@ -25,6 +25,7 @@ class CreateItemattributeTable extends Migration
             $table->unsignedInteger('task_id')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
+            $table->foreign('item_id')->references('id')->on('items')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
