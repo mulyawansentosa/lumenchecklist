@@ -1,6 +1,6 @@
 # Lumen Checklist
 
-This is sample pfoject how lumen work to handle request from client.
+This is sample project how lumen work to handle request from client.
 This documentation is describe how Auth Work, How handling read, update, and destroy data by API request.
 
 ## API Documentation
