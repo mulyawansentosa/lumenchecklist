@@ -210,7 +210,7 @@ class AuthController extends Controller
                     ], 200
                 );    
             }
-    }catch(\Exception $e){
+        }catch(\Exception $e){
             return response()->json(
                 [
                     'success'   => false,
@@ -222,9 +222,12 @@ class AuthController extends Controller
         }
     }
 
-    public function destroy($id=null)
+    public function destroy(Request $request, $id)
     {
-        $this->middleware('auth');
+        $data                   = $request->header();
+        $auth                   = $data['authorization'];
+        var_dump($auth);
+        /*
         try{
             if(is_null($id)){
                 return response()->json(
@@ -278,5 +281,6 @@ class AuthController extends Controller
                 ], 500
             );
         }
+        */
     }    
 }

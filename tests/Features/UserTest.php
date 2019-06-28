@@ -231,4 +231,46 @@ class UserTest extends TestCase
             $this->expectException($e->getMessage());
         }
     }    
+    public function testUser_can_delete_user(){
+        try{
+            $faker              = Faker\Factory::create();
+            $name               = $faker->name;
+            $email              = $faker->email;
+            $password           = $faker->password;
+            $token              = base64_encode(str_random(40));
+            $user               = App\User::create(
+                                    [
+                                        'name'      => $name,
+                                        'email'     => $email,
+                                        'password'  => Hash::make($password),
+                                        'api_token' => $token
+                                    ]
+                                );
+            $testCase           = array(
+                                    'success'   => true,
+                                    'code'      => 200,
+                                    'message'   => 'Data has been deleted',
+                                    'data'      => array()
+                                );
+            $status             = (array)$this->delete('/user/'.$user->id, ['HTTP_Authorization' => 'bearer '.$token]);
+            $data               = (array)json_decode($this->response->getContent(),true);
+            var_dump($data);
+            if(sizeof($data)>0 AND $data['success'] == true){
+                $result             = array(
+                                    'success'   => $data['success'],
+                                    'code'      => $data['code'],
+                                    'message'   => $data['message'],
+                                    'data'      => array()
+                                );
+                App\User::destroy($user->id);                    
+                $this->assertArraySubset(
+                    $testCase, $result
+                );    
+            }else{
+                throw new Exception('Responses: Error on Sending Header Data');
+            }                
+        }catch(\Exception $e){
+            $this->expectException($e->getMessage());
+        }
+    }    
 }
