@@ -28,8 +28,8 @@ $router->delete('/user/{id}', ['as' => 'user.destroy', 'uses' => 'AuthController
 $router->get('/logout', ['as' => 'user.logout', 'uses' => 'AuthController@logout']);
 
 // TEMPLATE
-$router->get('templates', ['as' => 'templates.index', 'uses' => 'TemplateController@index']);
-$router->get('checklists', ['as' => 'checklist.index', 'uses' => 'ChecklistController@index']);
+$router->get('/checklists/templates', ['as' => 'listallchecklisttemplate', 'uses' => 'TemplateController@listallchecklisttemplate']);
+$router->get('/checklists/templates/{templateId}', ['as' => 'getchecklisttemplate', 'uses' => 'TemplateController@getchecklisttemplate']);
 
 // ITEMS
 $router->post('checklists/{checklistId}/items', ['as' => 'createchecklistitem', 'uses' => 'ItemController@store']);
@@ -47,4 +47,4 @@ $router->get('checklists/{checklistId}', ['as' => 'getchecklist', 'uses' => 'Che
 $router->patch('checklists/{checklistId}', ['as' => 'updatechecklist', 'uses' => 'ChecklistController@update']);
 $router->delete('checklists/{checklistId}', ['as' => 'deletechecklist', 'uses' => 'ChecklistController@destroy']);
 $router->post('checklists', ['as' => 'createchecklist', 'uses' => 'ChecklistController@store']);
-$router->get('checklists', ['as' => 'getlistofchecklists', 'uses' => 'ChecklistController@getchecklists']);
+$router->get('checklists', ['as' => 'getlistofchecklists', 'uses' => 'ChecklistController@getlistofchecklist']);

@@ -20,6 +20,7 @@ class CreateUsersTable extends Migration
             $table->string('password')->require();
             $table->string('api_token')->nullable();
             $table->timestamps();
+            $table->softDeletes();            
         });
     }
 
@@ -30,6 +31,9 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
+        Schema::table('items', function (Blueprint $table){
+            $table->dropForeign('items_user_id_foreign');
+        });
         Schema::dropIfExists('users');
     }
 }

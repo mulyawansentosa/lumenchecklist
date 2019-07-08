@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models\Template\Eloquent;
+namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TemplateModel extends Model
+class Template extends Model
 {
     protected $table = 'templates';
     // protected $hidden = array('created_at','updated_at');    
@@ -14,7 +14,7 @@ class TemplateModel extends Model
      * @var array
      */
     protected $fillable = [
-        'type'
+        'name'
     ];
 
     /**
@@ -22,13 +22,7 @@ class TemplateModel extends Model
      *
      * @var array
      */
-    public function attributes(){
-        return $this->hasOne(TemplateattributeModel::class,'template_id');
-    }
-    public function links(){
-        return $this->hasOne(TemplatelinkModel::class,'template_id');
-    }
     public function checklist(){
-        return $this->hasOne(ChecklistModel::class,'template_id');
+        return $this->hasOne(Checklist::class,'template_id');
     }
 }

@@ -13,13 +13,22 @@ class UserTest extends TestCase
      *
      * @return void
      */
+    public function cekEmail($email){
+        $faker              = Faker\Factory::create();
+        if(count(App\User::where('email',$email)->first())>0){
+            $this->cekEmail($email);            
+        }{
+            $email          = $faker->email;
+            return $email;
+        }
+    }
 
     public function testUser_can_register_to_application()
     {
         try{
             $faker              = Faker\Factory::create();
             $name               = $faker->name;
-            $email              = $faker->email;
+            $email              = $this->cekEmail($faker->email);
             $password           = $faker->password;
             $testItem           = array(
                                     'name'      => $name,
@@ -35,7 +44,15 @@ class UserTest extends TestCase
                                                 'email'     => $email
                                             )
                                 );
-            $status             = $this->call('POST','/register',$testItem);
+            $status             = $this->call(
+                                'POST',
+                                '/register',
+                                $testItem,
+                                [],
+                                [],
+                                [],
+                                []);
+            // call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null);
             $data               = (array)json_decode($this->response->getContent(),true);
             if(sizeof($data)>0 AND $data['success'] == true){
                 $result             = array(
@@ -63,7 +80,7 @@ class UserTest extends TestCase
         try{
             $faker              = Faker\Factory::create();
             $name               = $faker->name;
-            $email              = $faker->email;
+            $email              = $this->cekEmail($faker->email);
             $password           = $faker->password;
             $user               = App\User::create(
                                     [
@@ -81,7 +98,15 @@ class UserTest extends TestCase
                                 'code'      => 200,
                                 'message'   => 'Login Success'
                                 );
-            $status             = $this->call('POST','/login',$testItem);
+            $status             = $this->call(
+                                'POST',
+                                '/login',
+                                $testItem,
+                                [],
+                                [],
+                                [],
+                                []);
+            // call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null);
             $data               = (array)json_decode($this->response->getContent(),true);
             if(sizeof($data)>0 AND $data['success'] == true){
                 $result             = array(
@@ -106,7 +131,7 @@ class UserTest extends TestCase
         try{
             $faker              = Faker\Factory::create();
             $name               = $faker->name;
-            $email              = $faker->email;
+            $email              = $this->cekEmail($faker->email);
             $password           = $faker->password;
             $user               = App\User::create(
                                     [
@@ -124,7 +149,15 @@ class UserTest extends TestCase
                                 'code'      => 200,
                                 'message'   => 'Login Failed'
                                 );
-            $status             = $this->call('POST','/login',$testItem);
+            $status             = $this->call(
+                                'POST',
+                                '/login',
+                                $testItem,
+                                [],
+                                [],
+                                [],
+                                []);
+            // call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null);
             $data               = (array)json_decode($this->response->getContent(),true);
             if(sizeof($data)>0 AND $data['success'] == false){
                 $result             = array(
@@ -148,7 +181,7 @@ class UserTest extends TestCase
         try{
             $faker              = Faker\Factory::create();
             $name               = $faker->name;
-            $email              = $faker->email;
+            $email              = $this->cekEmail($faker->email);
             $password           = $faker->password;
             $token              = base64_encode(str_random(40));
             $user               = App\User::create(
@@ -164,7 +197,19 @@ class UserTest extends TestCase
                                 'code'      => 200,
                                 'message'   => 'Logout Success'
                                 );
-            $status             = (array)$this->get('/logout', ['HTTP_Authorization' => 'bearer '.$token]);
+            $status             = $this->call(
+                                'GET',
+                                '/logout',
+                                [],
+                                [],
+                                [],
+                                $headers = [
+                                    'HTTP_Authorization' => 'bearer '.$token,
+                                    'CONTENT_TYPE' => 'application/json',
+                                    'HTTP_ACCEPT' => 'application/json'
+                                ]
+                                );
+            // call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null);
             $data               = (array)json_decode($this->response->getContent(),true);
             if(sizeof($data)>0 AND $data['success'] == true){
                 $result             = array(
@@ -178,7 +223,7 @@ class UserTest extends TestCase
                 );                            
             }else{
                 throw new Exception('Responses: '.$status);
-            }                
+            }
         }catch(\Exception $e){
             $this->expectException($e->getMessage());
         }
@@ -188,7 +233,7 @@ class UserTest extends TestCase
         try{
             $faker              = Faker\Factory::create();
             $name               = $faker->name;
-            $email              = $faker->email;
+            $email              = $this->cekEmail($faker->email);
             $password           = $faker->password;
             $token              = base64_encode(str_random(40));
             $user               = App\User::create(
@@ -208,7 +253,19 @@ class UserTest extends TestCase
                                                 'email'     => $email
                                             )
                                 );
-            $status             = (array)$this->get('/user/'.$user->id, ['HTTP_Authorization' => 'bearer '.$token]);
+            $status             = $this->call(
+                                'GET',
+                                '/user/'.$user->id,
+                                [],
+                                [],
+                                [],
+                                $headers = [
+                                    'HTTP_Authorization' => 'bearer '.$token,
+                                    'CONTENT_TYPE' => 'application/json',
+                                    'HTTP_ACCEPT' => 'application/json'
+                                ]
+                                );
+            // call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null);
             $data               = (array)json_decode($this->response->getContent(),true);
             if(sizeof($data)>0 AND $data['success'] == true){
                 $result             = array(
@@ -225,7 +282,7 @@ class UserTest extends TestCase
                     $testCase, $result
                 );    
             }else{
-                throw new Exception('Responses: Error on Sending Header Data');
+                throw new Exception('Responses: '.$status);
             }                
         }catch(\Exception $e){
             $this->expectException($e->getMessage());
@@ -235,7 +292,7 @@ class UserTest extends TestCase
         try{
             $faker              = Faker\Factory::create();
             $name               = $faker->name;
-            $email              = $faker->email;
+            $email              = $this->cekEmail($faker->email);
             $password           = $faker->password;
             $token              = base64_encode(str_random(40));
             $user               = App\User::create(
@@ -252,9 +309,19 @@ class UserTest extends TestCase
                                     'message'   => 'Data has been deleted',
                                     'data'      => array()
                                 );
-            $this->assertTrue(true,true);
-            /*
-            $status             = (array)$this->delete('/user/'.$user->id, [],['HTTP_Authorization' => 'bearer '.$token]);
+            $status             = $this->call(
+                                'DELETE',
+                                '/user/'.$user->id,
+                                [],
+                                [],
+                                [],
+                                $headers = [
+                                    'HTTP_Authorization' => 'bearer '.$token,
+                                    'CONTENT_TYPE' => 'application/json',
+                                    'HTTP_ACCEPT' => 'application/json'
+                                ]
+                                );
+            // call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null);
             $data               = (array)json_decode($this->response->getContent(),true);
             if(sizeof($data)>0 AND $data['success'] == true){
                 $result             = array(
@@ -268,9 +335,60 @@ class UserTest extends TestCase
                     $testCase, $result
                 );    
             }else{
-                throw new Exception('Responses: Error on Sending Header Data');
+                throw new Exception('Responses: '.$status);
             }
-            */                
+        }catch(\Exception $e){
+            $this->expectException($e->getMessage());
+        }
+    }
+    public function testCreate_checklist_item()
+    {
+        try{
+            $faker              = Faker\Factory::create();
+            $name               = $faker->name;
+            $email              = $this->cekEmail($faker->email);
+            $password           = $faker->password;
+            $testItem           = array(
+                                    'name'      => $name,
+                                    'email'     => $email,
+                                    'password'  => $password
+                                );
+            $testCase           = array(
+                                'success'   => true,
+                                'code'      => 200,
+                                'message'   => 'Registration Success',
+                                'data'      => array(
+                                                'name'      => $name,
+                                                'email'     => $email
+                                            )
+                                );
+            $status             = $this->call(
+                                'POST',
+                                '/register',
+                                $testItem,
+                                [],
+                                [],
+                                [],
+                                []);
+            // call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null);
+            $data               = (array)json_decode($this->response->getContent(),true);
+            if(sizeof($data)>0 AND $data['success'] == true){
+                $result             = array(
+                    'success'   => $data['success'],
+                    'code'      => $data['code'],
+                    'message'   => $data['message'],
+                    'data'      => array(
+                                    'name'      => $data['data']['name'],
+                                    'email'     => $data['data']['email']
+                                )
+                    );
+                App\User::destroy($data['data']['id']);
+                $this->assertArraySubset(
+                    $testCase, $result
+                );
+            }else{
+                throw new Exception('Responses: '.$status);
+            }                
         }catch(\Exception $e){
             $this->expectException($e->getMessage());
         }

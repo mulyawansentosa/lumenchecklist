@@ -1,12 +1,17 @@
 <?php
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use App\Models\Item\Item;
-use App\Models\Checklist\Checklist;
+use App\User;
+use App\Item;
+use App\Checklist;
+use App\Template;
+use DB;
+use App\Http\Resources\Item\ItemCompleteCollection;
+use App\Http\Resources\Checklist\GetChecklistItemResource;
+use App\Http\Resources\Item\CreateChecklistItemResource;
+use Carbon\Carbon;
 
 class ItemController extends Controller{
-    protected $items;
-    protected $checklists;
     /**
      * Create a new controller instance.
      *
@@ -15,14 +20,12 @@ class ItemController extends Controller{
     public function __construct()
     {
         $this->middleware('auth');
-        $this->items        = new Item;
-        $this->checklists    = new Checklist;
     }
 
     public function index()
     {
         try{
-            $data       = $this->items->showtemplate();
+            $data       = Item::showtemplate();
             if($data){
                 return response()->json(
                     [
@@ -34,7 +37,7 @@ class ItemController extends Controller{
             }else{
                 return response()->json(
                     [
-                        // 'stataus'   => false,
+                        // 'status'   => false,
                         // 'message'   => 'Error Getting List of Company',
                         'data'      => null
                     ],400
@@ -43,9 +46,9 @@ class ItemController extends Controller{
         }catch(\Exception $e){
             return response()->json(
                 [
-                    'success'   => false,
-                    'code'      => 500,
-                    'message'   => $e->getMessage(),
+                    // 'success'   => false,
+                    // 'code'      => 500,
+                    // 'message'   => $e->getMessage(),
                     'data'      => []
                 ], 500
             );
@@ -54,30 +57,52 @@ class ItemController extends Controller{
 
     public function store(Request $request, $id)
     {
-        $req                    = json_decode($request->getContent(),true);
-        $data                   = $req['data']['attribute'];
-        $data['checklist_id']   = $id;
-
-        $result = $this->items->store($data);
-        if($result){
-            $datachecklist      = $this->checklists->show($id);
+        try{
+            $req                    = json_decode($request->getContent(),true);
+            $data                   = $req['data']['attribute'];
+            $auth                   = $request->header();
+            $token                  = $auth['authorization'];
+            $user                   = User::where('api_token',str_replace('bearer ','',$token[0]))->first();
+            $data['user_id']        = $user->id;
+            $data['checklist_id']   = $id;
+            $result                 = Item::create($data);
+            if($result){
+                $datachecklist      = Checklist::find($id);
+                return new CreateChecklistItemResource($datachecklist);
+            }
+        }catch(\Exception $e){
             return response()->json(
                 [
-                    'data'   => $datachecklist
-                ],200
+                    // 'success'   => false,
+                    // 'code'      => 500,
+                    // 'message'   => $e->getMessage()
+                    'data'      => [$e->getMessage()]
+                ], 500
             );
         }
     }
 
     public function getchecklistitem($checklistId, $itemId)
     {
+        try{
+            $datachecklist      = Item::where('checklist_id',$checklistId)
+                                ->where('id',$itemId)
+                                ->first();
 
-        $result = $this->items->getchecklistitem($checklistId, $itemId);
-        if($result){
+            if(count($datachecklist) > 0){
+                return new GetChecklistItemResource($datachecklist);
+            }else{
+                return response()->json(
+                    [
+                        'data'   => []
+                    ],200
+                );    
+            }
+        }catch(\Exception $e){
             return response()->json(
                 [
-                    'data'   => $result
-                ],200
+                    'data'      => [$e->message()]
+                ], 500
             );
         }
     }
@@ -85,17 +110,18 @@ class ItemController extends Controller{
     public function completeitems(Request $request)
     {
         try{
-            $req                    = json_decode($request->getContent(),true);
-            $datas                  = $req['data'];
-            if(is_array($datas)){
-                $result             = $this->items->completeitems($datas);
-                if($result){
-                    return response()->json(
-                        [
-                            'data'   => $result
-                        ], 200
-                    );
-                }
+            $req                = json_decode($request->getContent(),true);
+            $item_data          = array_values($req['data']);
+            $update_data        = Item::whereIn('id', $item_data)->update(['is_completed' => true]);
+            $result             = Item::whereIn('id',$item_data)->get();
+            if(count($result) > 0){
+                return new ItemCompleteCollection($result);
+            }else{
+                return response()->json(
+                    [
+                        'data'   => []
+                    ],200
+                );    
             }
         }catch(\Exception $e){
             return response()->json(
@@ -108,85 +134,173 @@ class ItemController extends Controller{
 
     public function incompleteitems(Request $request)
     {
-        $req                    = json_decode($request->getContent(),true);
-        $datas                  = $req['data'];
-        if(is_array($datas)){
-            $result             = $this->items->incompleteitems($datas);
-            if($result){
+        try{
+            $req                = json_decode($request->getContent(),true);
+            $item_data          = array_values($req['data']);
+            $update_data        = Item::whereIn('id', $item_data)->update(['is_completed' => false]);
+            $result             = Item::whereIn('id',$item_data)->get();
+            if(count($result) > 0){
+                return new ItemCompleteCollection($result);
+            }else{
                 return response()->json(
                     [
-                        'data'   => $result
+                        'data'   => []
                     ],200
-                );
+                );    
             }
-    
+        }catch(\Exception $e){
+            return response()->json(
+                [
+                    'data'      => []
+                ], 500
+            );
         }
     }
 
     public function update(Request $request, $checklistId,$itemId)
     {
-        $req                    = json_decode($request->getContent(),true);
-        $data                   = $req['data']['attribute'];
-        $data['checklist_id']   = $checklistId;
-
-        $result = $this->items->update($data,$checklistId,$itemId);
-        if($result){
-            $datachecklist      = $this->checklists->show($checklistId);
+        try{
+            $req                    = json_decode($request->getContent(),true);
+            $data                   = $req['data']['attribute'];
+            $item                   = Item::where('checklist_id',$checklistId)->where('id',$itemId)->first();
+            $result                 = $item->update($data);
+            // var_dump($result);
+            if($result){
+                $datachecklist      = Checklist::find($checklistId);
+                return new CreateChecklistItemResource($datachecklist);
+            }else{
+                return response()->json(
+                    [
+                        'data'   => []
+                    ],200
+                );    
+            }
+        }catch(\Exception $e){
             return response()->json(
                 [
-                    'data'   => $datachecklist
-                ],200
+                    // 'success'   => false,
+                    // 'code'      => 500,
+                    // 'message'   => $e->getMessage()
+                    'data'      => [$e->getMessage()]
+                ], 500
             );
         }
     }
 
     public function bulkupdate(Request $request, $checklistId)
     {
-        $req                    = json_decode($request->getContent(),true);
-        $data                   = $req['data'];
-
-        $result = $this->items->updatebulk($data,$checklistId);
-        if($result){
+        try{
+            $req                    = json_decode($request->getContent(),true);
+            $data                   = $req['data'];
+            foreach($data as $items){
+                $dataitem   = array();
+                $execute    = Item::where('checklist_id',$checklistId)->where('id',$items['id'])->first();
+                if($execute){
+                    $result    = $execute->update(
+                        [
+                            'description'   => $items['attributes']['description'],
+                            'due'           => $items['attributes']['due'],
+                            'urgency'       => $items['attributes']['urgency']
+                        ]
+                    );
+                    if($result){
+                        $dataitem['status']  = 200;
+                    }else{
+                        $dataitem['status']  = 403;
+                    }    
+                }else{
+                    $dataitem['status']  = 404;
+                }
+                $dataitem['id']      = $items['id'];
+                $dataitem['action']  = 'update';
+                $check[] = $dataitem;
+            }
+            if(sizeof($check)>0){
+                return response()->json(
+                    [
+                        'data'   => $check
+                    ],200
+                );
+            }else{
+                return response()->json(
+                    [
+                        // 'success'   => false,
+                        // 'code'      => 500,
+                        // 'message'   => $e->getMessage(),
+                        'data'      => []
+                    ], 500
+                );
+            }
+        }catch(\Exception $e){
             return response()->json(
                 [
-                    'data'   => $result
-                ],200
+                    // 'success'   => false,
+                    // 'code'      => 500,
+                    // 'message'   => $e->getMessage(),
+                    'data'      => []
+                ], 500
             );
         }
     }
 
     public function destroy($checklistId,$itemId)
     {
-        $result = $this->items->destroy($checklistId,$itemId);
-        if($result){
-            $datachecklist      = $this->checklists->show($checklistId);
+        try{
+            $item                   = Item::where('checklist_id',$checklistId)->where('id',$itemId)->first();
+            if($item){
+                $result             = $item->delete();
+                $datachecklist      = Checklist::find($checklistId);
+                return new CreateChecklistItemResource($datachecklist);
+            }else{
+                return response()->json(
+                    [
+                        'data'   => []
+                    ],200
+                );    
+            }
+        }catch(\Exception $e){
             return response()->json(
                 [
-                    'data'   => $datachecklist
-                ],200
+                    // 'success'   => false,
+                    // 'code'      => 500,
+                    // 'message'   => $e->getMessage(),
+                    'data'      => []
+                ], 500
             );
         }
     }
 
     public function summaries(Request $request)
     {
-        $today      = 0;
-        $past_due   = 0;
-        $this_week  = 0;
-        $past_week  = 0;
-        $this_month = 0;
-        $past_month = 0;
-        $total      = 0;
-        return response()->json(
-            [
-                'today'         => $today,
-                'past_due'      => $past_due,
-                'this_week'     => $this_week,
-                'past_week'     => $past_week,
-                'this_month'    => $this_month,
-                'past_month'    => $past_month,
-                'total'         => $total
-            ],200
-        );
+        try{
+            $date       = Carbon::now();
+            $today      = count(Item::whereDate('due',Carbon::now()->format('Y-m-d H:i:s'))->get());
+            $past_due   = count(Item::whereDate('due','<',Carbon::now()->format('Y-m-d H:i:s'))->get());
+            $this_week  = count(Item::whereBetween('due',[Carbon::now()->startOfWeek()->format('Y-m-d H:i:s'),Carbon::now()->endOfWeek()->format('Y-m-d H:i:s')])->get());
+            $past_week  = count(Item::whereBetween('due',[Carbon::now()->subWeek()->subDay(7)->format('Y-m-d H:i:s'),Carbon::now()->subWeek()->format('Y-m-d H:i:s')])->get());
+            $this_month = count(Item::whereBetween('due',[Carbon::now()->startOfMonth()->format('Y-m-d H:i:s'),Carbon::now()->endOfMonth()->format('Y-m-d H:i:s')])->get());
+            $past_month = count(Item::whereBetween('due',[Carbon::now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s'),Carbon::now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s')])->get());
+            $total      = count(Item::all());
+            return response()->json(
+                [
+                    'today'         => $today,
+                    'past_due'      => $past_due,
+                    'this_week'     => $this_week,
+                    'past_week'     => $past_week,
+                    'this_month'    => $this_month,
+                    'past_month'    => $past_month,
+                    'total'         => $total
+                ],200
+            );
+        }catch(\Exception $e){
+            return response()->json(
+                [
+                    // 'success'   => false,
+                    // 'code'      => 500,
+                    // 'message'   => $e->getMessage(),
+                    'data'      => []
+                ], 500
+            );
+        }
     }
 }

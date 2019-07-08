@@ -236,7 +236,7 @@ class AuthController extends Controller
             }else{
                 $check      = User::find($id);
                 if($check){
-                    $user = User::delete($id);
+                    $user = User::destroy($id);
                     if($user){
                         return response()->json(
                             [

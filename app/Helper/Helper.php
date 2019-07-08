@@ -1,9 +1,5 @@
 <?php
 
-namespace App\Helper;
-
-class Helper{
-    public function testing(){
-        return 'Testing';
-    }
-}
+function isJson(){
+    return is_string($string) && is_array(json_decode($string, true)) ? true : false;
+}    

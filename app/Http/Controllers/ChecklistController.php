@@ -1,8 +1,15 @@
 <?php
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use App\Models\Checklist\Checklist;
-use App\Models\Item\Item;
+use App\User;
+use App\Template;
+use App\Checklist;
+use App\Item;
+use DB;
+use App\Http\Resources\Checklist\ListofItemInGivenChecklistResource;
+use App\Http\Resources\Checklist\GetChecklistResource;
+use App\Http\Resources\Checklist\GetListofChecklistCollection;
+use Carbon\Carbon;
 
 class ChecklistController extends Controller{
     protected $checklists;
@@ -34,7 +41,7 @@ class ChecklistController extends Controller{
         }else{
             return response()->json(
                 [
-                    'stataus'   => false,
+                    'status'   => false,
                     'message'   => 'Error Getting List of Company',
                     'data'      => null
                 ],400
@@ -44,39 +51,121 @@ class ChecklistController extends Controller{
 
     public function listofitemingivenchecklist($checklistId)
     {
-        $datachecklist      = $this->checklists->listofitemingivenchecklist($checklistId);
-        return response()->json(
-            [
-                'data'   => $datachecklist
-            ],200
-        );
+        try{
+            $datachecklist      = Checklist::with('items')->where('id',$checklistId)->first();
+            // var_dump($datachecklist->items);
+            if(count($datachecklist) > 0){
+                return new ListofItemInGivenChecklistResource($datachecklist);
+            }else{
+                return response()->json(
+                    [
+                        'data'   => []
+                    ],200
+                );    
+            }
+        }catch(\Exception $e){
+            return response()->json(
+                [
+                    'data'      => [$e->message()]
+                ], 500
+            );
+        }
     }
 
     public function getchecklist($checklistId)
     {
-        $data       = $this->checklists->getchecklist($checklistId);
-        if($data){
+        try{
+            $datachecklist      = Checklist::where('id',$checklistId)
+                                ->first();
+
+            if(count($datachecklist) > 0){
+                return new GetChecklistResource($datachecklist);
+            }else{
+                return response()->json(
+                    [
+                        'data'   => []
+                    ],200
+                );    
+            }
+        }catch(\Exception $e){
             return response()->json(
                 [
-                    'data'      => $data
-                ],200
+                    'data'      => [$e->message()]
+                ], 500
             );
-        }else{
+        }
+    }
+
+    public function getlistofchecklist()
+    {
+        try{
+            $datachecklist      = Checklist::paginate();
+
+            if(count($datachecklist) > 0){
+                return new GetListofChecklistCollection($datachecklist);
+            }else{
+                return response()->json(
+                    [
+                        'data'   => []
+                    ],200
+                );    
+            }
+        }catch(\Exception $e){
             return response()->json(
                 [
-                    'stataus'   => "404",
-                    'error'     => "Not found"
-                ],404
+                    'data'      => [$e->message()]
+                ], 500
             );
         }
     }
 
     public function update(Request $request, $checklistId)
     {
+
         $req                    = json_decode($request->getContent(),true);
         $data                   = $req['data']['attributes'];
 
-        $result = $this->checklists->update($data,$checklistId);
+        $execute                = Checklist::find($checklistId);
+        if($execute){
+            $result     = $execute->update(
+                [
+                    'object_domain' => $data['object_domain'],
+                    'object_id'     => $data['object_id'],
+                    'description'   => $data['description'],
+                    'is_completed'  => $data['is_completed'],
+                    'completed_at'  => $data['completed_at'],
+                    'created_at'    => $data['created_at']
+                ]
+            );    
+            if($result){
+                $datachecklist      = Checklist::where('id',$checklistId)
+                                    ->first();
+
+                if(count($datachecklist) > 0){
+                    return new GetChecklistResource($datachecklist);
+                }else{
+                    return response()->json(
+                        [
+                            'data'   => []
+                        ],200
+                    );    
+                }
+            }else{
+                return response()->json(
+                    [
+                        'data'   => []
+                    ],200
+                );    
+            }
+        }else{
+            return response()->json(
+                [
+                    'data'   => []
+                ],404
+            );
+        }
+        
+
         if($result){
             $datachecklist      = $this->checklists->show($checklistId);
             return response()->json(
@@ -89,52 +178,66 @@ class ChecklistController extends Controller{
 
     public function destroy($checklistId)
     {
-        $execute        = $this->checklists->destroy($checklistId);
-        if($execute){
-            $dataitem['status']  = 200;
-            $dataitem['action']  = 'success';
-        }else{
-            $dataitem['status']  = 404;
-            $dataitem['action']  = 'Not Found';
+        try{
+            $check             = Checklist::find($checklistId);
+            if($check){
+                $result        = Checklist::find($checklistId)->delete();
+                if($result){
+                    $dataitem['status']  = 201;
+                    $dataitem['action']  = 'success';
+                }
+            }else{
+                $dataitem['status']  = 404;
+                $dataitem['error']  = 'Not Found';
+            }
+            return response()->json(
+                $dataitem, 500
+            );
+        }catch(\Exception $e){
+            $dataitem['status']     = 500;
+            $dataitem['error']      = $e->getMessage();
+            return response()->json(
+                $dataitem, 500
+            );
         }
-        // return response()->json($dataitem);
-        return $execute;
     }
 
     public function store(Request $request)
     {
-        $req                    = json_decode($request->getContent(),true);
-        $data                   = $req['data']['attributes'];
-
-        $result = $this->checklists->store($data);
-        if($result){
-            $datachecklist      = $this->items->storechecklist($data['items'],$result['id']);
-            $res                = $this->checklists->getchecklist($result['id']);
+        try{
+            $req                    = json_decode($request->getContent(),true);
+            $data                   = $req['data']['attributes'];
+            $auth                   = $request->header();
+            $token                  = $auth['authorization'];
+            $user                   = User::where('api_token',str_replace('bearer ','',$token[0]))->first();
+            $dataitems              = $data['items'];
+            $execute                = Checklist::create(
+                                    [
+                                        'template_id'   => Template::all()->random()->id,
+                                        'object_domain' => $data['object_domain'],
+                                        'object_id'     => $data['object_id'],
+                                        'due'           => $data['due'],
+                                        'urgency'       => $data['urgency'],
+                                        'description'   => $data['description'],
+                                        'task_id'       => $data['task_id']
+                                    ]
+            );
+            foreach($dataitems as $val){
+                $execute->items()->create(
+                    [
+                        'description'   => $val,
+                        'user_id'       => $user->id
+                    ]
+                );
+            }
+            $datachecklist      = Checklist::where('id',$execute->id)->first();
+            return new GetChecklistResource($datachecklist);
+        }catch(\Exception $e){
+            $dataitem['status']     = 500;
+            $dataitem['error']      = $e->getMessage();
             return response()->json(
-                [
-                    'data'   => $res
-                ],200
+                $dataitem, 500
             );
         }
     }
-
-    public function getchecklists()
-    {
-        $data       = $this->checklists->getchecklists();
-        if($data){
-            return response()->json(
-                [
-                    $data
-                ],200
-            );
-        }else{
-            return response()->json(
-                [
-                    'stataus'   => "500",
-                    'error'     => "Server error"
-                ],404
-            );
-        }
-    }
-
 }

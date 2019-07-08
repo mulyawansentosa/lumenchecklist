@@ -21,19 +21,7 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
 });
 
 // ========= TEMPLATE FACTORY ========= //
-$factory->define(App\Models\Template\Eloquent\TemplateModel::class, function (Faker\Generator $faker) {
-    return [
-        'type'          => $faker->jobTitle
-    ];
-});
-
-$factory->define(App\Models\Template\Eloquent\TemplatelinkModel::class, function (Faker\Generator $faker) {
-    return [
-        'self'          => $faker->url
-    ];
-});
-
-$factory->define(App\Models\Template\Eloquent\TemplateattributeModel::class, function (Faker\Generator $faker) {
+$factory->define(App\Template::class, function (Faker\Generator $faker) {
     return [
         'name'          => $faker->name
     ];
@@ -41,58 +29,39 @@ $factory->define(App\Models\Template\Eloquent\TemplateattributeModel::class, fun
 // ========= END TEMPLATE FACTORY ========= //
 
 // ========= CHECKLIST FACTORY ========= //
-$factory->define(App\Models\Checklist\Eloquent\ChecklistModel::class, function (Faker\Generator $faker) {
+$factory->define(App\Checklist::class, function (Faker\Generator $faker) {
     return [
-        'template_id'  => App\Models\Template\Eloquent\TemplateModel::first()->id,
-        'type'          => $faker->jobTitle
-    ];
-});
-
-$factory->define(App\Models\Checklist\Eloquent\ChecklistlinkModel::class, function (Faker\Generator $faker) {
-    return [
-        'self'          => $faker->url
-    ];
-});
-
-$factory->define(App\Models\Checklist\Eloquent\ChecklistattributeModel::class, function (Faker\Generator $faker) {
-    return [
+        'template_id'       => App\Template::all()->random()->id,
         'object_domain'     => $faker->jobTitle,
         'object_id'         => $faker->randomDigit,
         'description'       => $faker->sentence($nbWords = 6, $variableNbWords = true),
         'is_completed'      => $faker->boolean,
         'completed_at'      => $faker->dateTime(),
-        'updated_by'        => $faker->randomDigit,
+        'created_by'        => App\User::all()->random()->id,
+        'updated_by'        => App\User::all()->random()->id,
         'due'               => $faker->dateTime(),
+        'due_interval'      => $faker->randomDigit,
+        'due_unit'          => $faker->randomElement(['minute','hour','day','week','month']),
         'urgency'           => $faker->randomDigit
-
-
     ];
 });
 // ========= END CHECKLIST FACTORY ========= //
 
 // ========= ITEM FACTORY ========= //
-$factory->define(App\Models\Item\Eloquent\ItemModel::class, function (Faker\Generator $faker) {
+$factory->define(App\Item::class, function (Faker\Generator $faker) {
     return [
-        'checklist_id'  => App\Models\Checklist\Eloquent\ChecklistModel::first()->id,
-        'type'          => $faker->jobTitle
-    ];
-});
-
-$factory->define(App\Models\Item\Eloquent\ItemlinkModel::class, function (Faker\Generator $faker) {
-    return [
-        'self'          => $faker->url
-    ];
-});
-
-$factory->define(App\Models\Item\Eloquent\ItemattributeModel::class, function (Faker\Generator $faker) {
-    return [
+        'checklist_id'      => App\Checklist::all()->random()->id,
+        'user_id'           => App\User::all()->random()->id,
         'description'       => $faker->sentence($nbWords = 6, $variableNbWords = true),
         'is_completed'      => $faker->boolean,
         'completed_at'      => $faker->dateTime(),
-        'updated_by'        => $faker->randomDigit,
+        'created_by'        => App\User::all()->random()->id,
+        'updated_by'        => App\User::all()->random()->id,
         'due'               => $faker->dateTime(),
+        'due_interval'      => $faker->randomDigit,
+        'due_unit'          => $faker->randomElement(['minute','hour','day','week','month']),
         'urgency'           => $faker->randomDigit,
-        'assignee_id'       => $faker->randomDigit,
+        'assignee_id'       => App\User::all()->random()->id,
         'task_id'           => $faker->randomDigit
     ];
 });

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateItemTable extends Migration
+class CreateTemplateTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,14 @@ class CreateItemTable extends Migration
      */
     public function up()
     {
-        Schema::create('items', function (Blueprint $table){
+        Schema::create('templates', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('checklist_id')->require();
-            $table->string('type')->require();
+            $table->string('name')->require();
+            $table->bigInteger('created_by')->unsigned()->nullable();
+            $table->bigInteger('updated_by')->unsigned()->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
+            $table->softDeletes();            
         });
     }
 
@@ -29,12 +31,9 @@ class CreateItemTable extends Migration
      */
     public function down()
     {
-        Schema::table('itemattributes', function (Blueprint $table){
-            $table->dropForeign('itemattributes_item_id_foreign');
+        Schema::table('checklists', function (Blueprint $table){
+            $table->dropForeign('checklists_template_id_foreign');
         });
-        Schema::table('itemlinks', function (Blueprint $table){
-            $table->dropForeign('itemlinks_item_id_foreign');
-        });
-        Schema::dropIfExists('items');
+        Schema::dropIfExists('templates');
     }
 }
