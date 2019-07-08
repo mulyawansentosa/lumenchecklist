@@ -22,39 +22,6 @@ class ItemController extends Controller{
         $this->middleware('auth');
     }
 
-    public function index()
-    {
-        try{
-            $data       = Item::showtemplate();
-            if($data){
-                return response()->json(
-                    [
-                        // 'status'    => true,
-                        // 'message'   => 'List of Company',
-                        'data'      => $data
-                    ],200
-                );
-            }else{
-                return response()->json(
-                    [
-                        // 'status'   => false,
-                        // 'message'   => 'Error Getting List of Company',
-                        'data'      => null
-                    ],400
-                );
-            }
-        }catch(\Exception $e){
-            return response()->json(
-                [
-                    // 'success'   => false,
-                    // 'code'      => 500,
-                    // 'message'   => $e->getMessage(),
-                    'data'      => []
-                ], 500
-            );
-        }
-    }
-
     public function store(Request $request, $id)
     {
         try{

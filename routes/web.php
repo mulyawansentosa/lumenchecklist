@@ -30,6 +30,7 @@ $router->get('/logout', ['as' => 'user.logout', 'uses' => 'AuthController@logout
 // TEMPLATE
 $router->get('/checklists/templates', ['as' => 'listallchecklisttemplate', 'uses' => 'TemplateController@listallchecklisttemplate']);
 $router->get('/checklists/templates/{templateId}', ['as' => 'getchecklisttemplate', 'uses' => 'TemplateController@getchecklisttemplate']);
+$router->post('checklists/templates', ['as' => 'createchecklisttemplate', 'uses' => 'TemplateController@store']);
 
 // ITEMS
 $router->post('checklists/{checklistId}/items', ['as' => 'createchecklistitem', 'uses' => 'ItemController@store']);

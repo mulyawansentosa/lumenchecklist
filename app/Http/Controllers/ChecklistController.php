@@ -26,29 +26,6 @@ class ChecklistController extends Controller{
         $this->items        = new Item;
     }
 
-    public function index()
-    {
-        $template   = new Checklist();
-        $data       = $template->showtemplate();
-        if($data){
-            return response()->json(
-                [
-                    'status'    => true,
-                    'message'   => 'List of Company',
-                    'data'      => $data
-                ],200
-            );
-        }else{
-            return response()->json(
-                [
-                    'status'   => false,
-                    'message'   => 'Error Getting List of Company',
-                    'data'      => null
-                ],400
-            );
-        }
-    }
-
     public function listofitemingivenchecklist($checklistId)
     {
         try{
