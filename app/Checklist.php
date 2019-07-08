@@ -22,9 +22,14 @@ class Checklist extends Model
         'description',
         'is_completed',
         'completed_at',
-        'updated_by',
         'due',
-        'urgency'
+        'due_interval',
+        'due_unit',
+        'urgency',
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at'
     ];
     
     public function setDueAttribute($value)

@@ -15,16 +15,21 @@ class Item extends Model
      * @var array
      */
     protected $fillable = [
-        'checklist_id',
         'user_id',
+        'checklist_id',
         'description',
         'is_completed',
         'completed_at',
-        'updated_by',
         'due',
+        'due_interval',
+        'due_unit',
         'urgency',
         'assignee_id',
-        'task_id'
+        'task_id',
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at'
     ];
     public function getIsCompletedAttribute($is_completed){
         return $is_completed == 1 ? true : false;
