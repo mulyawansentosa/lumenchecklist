@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\Checklist\GetChecklistResource;
 use App\Http\Resources\Checklist\GetListofChecklistCollection;
 use App\Http\Resources\Template\ListAllChecklistTemplateCollection;
+use App\Http\Resources\Template\CreateChecklistTemplateResource;
 
 class Helper{
     public function isJson($string){
@@ -95,6 +96,82 @@ class TemplateTest extends TestCase
         }
     }
 
+    public function testCreate_checklist()
+    {
+        try{
+            //Generate User for Login
+            $users              = factory(App\User::class, 10)->create();
+            $faker              = Faker\Factory::create();
+            $name               = $faker->name;
+            $email              = $this->cekEmail($faker->email);
+            $password           = $faker->password;
+            $token              = base64_encode(str_random(40));            
+            $user               = App\User::create(
+                                    [
+                                        'name'      => $name,
+                                        'email'     => $email,
+                                        'password'  => Hash::make($password),
+                                        'api_token' => $token
+                                    ]
+                                );
+
+            //Parameter sent to server
+            $testParam          = [
+                                    "attributes"    => [
+                                        "name"          => $faker->name,
+                                        "checklist"     => [
+                                            "description"       => $faker->sentence($nbWords = 6, $variableNbWords = true),
+                                            "due_interval"      => $faker->randomDigit,
+                                            "due_unit"          => $faker->randomElement(['minute','hour','day','week','month'])
+                                        ],
+                                        "items"         => [
+                                            [
+                                                "description"       => $faker->sentence($nbWords = 6, $variableNbWords = true),
+                                                "urgency"           => $faker->randomDigit,
+                                                "due_interval"      => $faker->randomDigit,
+                                                "due_unit"          => $faker->randomElement(['minute','hour','day','week','month'])    
+                                            ]
+                                        ]
+                                    ]
+                                ];
+
+            //Processing data to server
+            $status             = (array) $this->call(
+                                'POST',
+                                '/checklists/templates',
+                                [],
+                                [],
+                                [],
+                                $headers = [
+                                    'HTTP_Authorization' => 'bearer '.$token,
+                                    'CONTENT_TYPE' => 'application/json',
+                                    'HTTP_ACCEPT' => 'application/json'
+                                ],
+                                $json = json_encode(['data' => $testParam])
+                                );
+                                //call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+            //Getting item data that has been created
+            $data               = new CreateChecklistTemplateResource(Template::all()->last());
+            $testCase           = json_encode($data);
+            //Converting data from json to Array
+            $result             = $this->response->getContent();
+            $helper             = new Helper;
+            if($helper->isJson($result)){
+                // Testing
+                $this->assertJsonStringEqualsJsonString(
+                    $testCase, $result
+                );
+            }else{
+                throw new Exception('Responses: '.$status);
+            }
+
+            // Deleting Testing DAta
+            App\User::destroy($user->id);   
+        }catch(\Exception $e){
+            $this->expectException($e->getMessage());
+        }
+    }     
+
     public function testGet_checklist_template()
     {
         try{
@@ -156,9 +233,9 @@ class TemplateTest extends TestCase
         }catch(\Exception $e){
             $this->expectException($e->getMessage());
         }
-    }   
-    
-    public function testCreate_checklist()
+    }       
+
+    public function testDelete_checklist_template()
     {
         try{
             //Generate User for Login
@@ -193,6 +270,15 @@ class TemplateTest extends TestCase
                 $checklist_id       = 1;
             }
 
+            //Checking item id wheater exist or not
+            $count_item             = Item::count();
+            if($count_item>0){
+                $item_id            = Item::get()->last()->id+1;
+            }else{
+                $item_id            = 1;
+            }
+            $is_completed           = $faker->boolean;
+
             //Creating template data
             factory(Template::class)->create(
                 [
@@ -200,27 +286,34 @@ class TemplateTest extends TestCase
                 ]
             );
 
-            //Parameter sent to server
-            $testParam          = [
-                                    "attributes"    => [
-                                        "object_domain" => $faker->jobTitle,
-                                        "object_id"     => $faker->randomDigit,
-                                        "due"           => $faker->date('Y-m-d H:i:s'),
-                                        "urgency"       => $faker->randomDigit,
-                                        "description"   => $faker->sentence($nbWords = 6, $variableNbWords = true),
-                                        "items"         => [
-                                            $faker->sentence($nbWords = 6, $variableNbWords = true),
-                                            $faker->sentence($nbWords = 6, $variableNbWords = true),
-                                            $faker->sentence($nbWords = 6, $variableNbWords = true)
-                                        ],
-                                        "task_id"       => $faker->randomDigit
-                                    ]
+            //Creating checklist data
+            factory(Checklist::class)->create(
+                [
+                    'id'            => $checklist_id,
+                    'template_id'   => $template_id
+                ]
+            );
+
+            //Creating item data
+            factory(Item::class)->create(
+                [
+                    'id'            => $item_id,
+                    'checklist_id'  => $checklist_id
+                ]
+            );
+
+            //Getting item data that has been created
+            // $data               = new GetChecklistResource(Checklist::where('id',$checklist_id)->first());
+            $data               = [
+                                    "status"    => 201,
+                                    "action"    => "success"
                                 ];
+            $testCase           = json_encode($data);
 
             //Processing data to server
             $status             = (array) $this->call(
-                                'POST',
-                                '/checklists',
+                                'DELETE',
+                                '/checklists/templates/'.$template_id,
                                 [],
                                 [],
                                 [],
@@ -228,13 +321,11 @@ class TemplateTest extends TestCase
                                     'HTTP_Authorization' => 'bearer '.$token,
                                     'CONTENT_TYPE' => 'application/json',
                                     'HTTP_ACCEPT' => 'application/json'
-                                ],
-                                $json = json_encode(['data' => $testParam])
+                                ]
+                                // $json = json_encode(['data' => $testParam])
                                 );
                                 //call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
-            //Getting item data that has been created
-            $data               = new GetChecklistResource(Checklist::all()->last());
-            $testCase           = json_encode($data);
+            
             //Converting data from json to Array
             $result             = $this->response->getContent();
             $helper             = new Helper;
@@ -253,5 +344,5 @@ class TemplateTest extends TestCase
         }catch(\Exception $e){
             $this->expectException($e->getMessage());
         }
-    }     
+    }
 }

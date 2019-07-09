@@ -31,6 +31,8 @@ $router->get('/logout', ['as' => 'user.logout', 'uses' => 'AuthController@logout
 $router->get('/checklists/templates', ['as' => 'listallchecklisttemplate', 'uses' => 'TemplateController@listallchecklisttemplate']);
 $router->get('/checklists/templates/{templateId}', ['as' => 'getchecklisttemplate', 'uses' => 'TemplateController@getchecklisttemplate']);
 $router->post('checklists/templates', ['as' => 'createchecklisttemplate', 'uses' => 'TemplateController@store']);
+$router->patch('checklists/templates/{templateId}', ['as' => 'updatechecklisttemplate', 'uses' => 'TemplateController@update']);
+$router->delete('/checklists/templates/{templateId}', ['as' => 'deletechecklisttemplate', 'uses' => 'TemplateController@destroy']);
 
 // ITEMS
 $router->post('checklists/{checklistId}/items', ['as' => 'createchecklistitem', 'uses' => 'ItemController@store']);

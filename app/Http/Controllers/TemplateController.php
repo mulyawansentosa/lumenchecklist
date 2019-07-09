@@ -109,4 +109,79 @@ class TemplateController extends Controller{
             );
         }
     }    
+
+    public function update(Request $request,$templateId)
+    {
+        // try{
+            $faker                  = Faker::create();
+            $req                    = json_decode($request->getContent(),true);
+            $data                   = $req['data'];
+            $auth                   = $request->header();
+            $token                  = $auth['authorization'];
+            $user                   = User::where('api_token',str_replace('bearer ','',$token[0]))->first();
+            $dataitems              = $data['items'];
+            $findtemplate           = Template::find($templateId)->first();
+            $exetemplate            = $findtemplate->update(
+                                    [
+                                        'name'   => $data['name']
+
+                                    ]
+            );
+            var_dump($exetemplate);
+
+            $exechecklist           = $findtemplate->checklist()->update(
+                                    [
+                                        'description'   => $data['checklist']['description'],
+                                        'due_interval'  => $data['checklist']['due_interval'],
+                                        'due_unit'      => $data['checklist']['due_unit']
+                                    ]
+            );
+            var_dump($exechecklist);
+            // foreach($dataitems as $val){
+            //     $exechecklist->items()->update(
+            //         [
+            //             'user_id'       => $user->id,
+            //             'description'   => $val['description'],
+            //             'urgency'       => $val['urgency'],
+            //             'due_interval'  => $val['due_interval'],
+            //             'due_unit'      => $val['due_unit']
+            //         ]
+            //     );
+            // }
+            // $datatemplate           = Template::find($exetemplate->id);
+            // return new CreateChecklistTemplateResource($datatemplate);
+        // }catch(\Exception $e){
+        //     $dataitem['status']     = 500;
+        //     $dataitem['error']      = $e->getMessage();
+        //     return response()->json(
+        //         $dataitem, 500
+        //     );
+        // }
+    }
+
+    public function destroy($templateId)
+    {
+        try{
+            $check             = Template::find($templateId);
+            if($check){
+                $result        = Template::find($templateId)->delete();
+                if($result){
+                    $dataitem['status']  = 201;
+                    $dataitem['action']  = 'success';
+                }
+            }else{
+                $dataitem['status']  = 404;
+                $dataitem['error']  = 'Not Found';
+            }
+            return response()->json(
+                $dataitem, 500
+            );
+        }catch(\Exception $e){
+            $dataitem['status']     = 500;
+            $dataitem['error']      = $e->getMessage();
+            return response()->json(
+                $dataitem, 500
+            );
+        }
+    }
 }
