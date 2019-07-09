@@ -13,12 +13,7 @@ use App\Http\Resources\Checklist\GetChecklistResource;
 use App\Http\Resources\Checklist\GetListofChecklistCollection;
 use App\Http\Resources\Template\ListAllChecklistTemplateCollection;
 use App\Http\Resources\Template\CreateChecklistTemplateResource;
-
-class Helper{
-    public function isJson($string){
-        return is_string($string) && is_array(json_decode($string, true)) ? true : false;
-    }
-}
+use App\Helper\Helper;
 
 class TemplateTest extends TestCase
 {

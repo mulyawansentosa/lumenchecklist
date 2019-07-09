@@ -13,12 +13,7 @@ use App\Http\Resources\Checklist\ListofItemInGivenChecklistResource;
 use App\Http\Resources\Checklist\GetChecklistItemResource;
 use App\Http\Resources\Item\CreateChecklistItemResource;
 use Carbon\Carbon;
-
-class Helper{
-    public function isJson($string){
-        return is_string($string) && is_array(json_decode($string, true)) ? true : false;
-    }
-}
+use App\Helper\Helper;
 
 class ItemTest extends TestCase
 {

@@ -341,7 +341,7 @@ class UserTest extends TestCase
             $this->expectException($e->getMessage());
         }
     }
-    public function testCreate_checklist_item()
+    public function testCreate_user()
     {
         try{
             $faker              = Faker\Factory::create();

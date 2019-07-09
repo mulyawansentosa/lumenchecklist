@@ -11,12 +11,7 @@ use App\Item;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\Checklist\GetChecklistResource;
 use App\Http\Resources\Checklist\GetListofChecklistCollection;
-
-class Helper{
-    public function isJson($string){
-        return is_string($string) && is_array(json_decode($string, true)) ? true : false;
-    }
-}
+use App\Helper\Helper;
 
 class ChecklistTest extends TestCase
 {

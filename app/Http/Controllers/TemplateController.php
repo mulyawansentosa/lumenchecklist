@@ -120,6 +120,36 @@ class TemplateController extends Controller{
             $token                  = $auth['authorization'];
             $user                   = User::where('api_token',str_replace('bearer ','',$token[0]))->first();
             $dataitems              = $data['items'];
+
+            $findtemplate           = Template::find($templateId)->first();
+            $exetemplate            = $findtemplate->update(
+                                    [
+                                        'name'   => $data['name']
+        
+                                    ]
+            );
+            var_dump('Update Template: ',$exetemplate);
+        
+            $exechecklist           = $findtemplate->checklist()->update(
+                                    [
+                                        'description'   => $data['checklist']['description'],
+                                        'due_interval'  => $data['checklist']['due_interval'],
+                                        'due_unit'      => $data['checklist']['due_unit']
+                                    ]
+            );
+            var_dump('Update Checklist: ',$exechecklist);
+        
+            $execitem               = $findtemplate->checklist()->items()->update(
+                                    [
+                                        'description'   => $data['items']['description'],
+                                        'urgency'       => $data['items']['urgency'],
+                                        'due_interval'  => $data['items']['due_interval'],
+                                        'due_unit'      => $data['items']['due_unit']
+                                    ]
+            );
+            var_dump('Create Items: ',$execitem);                    
+
+            /*
             $findtemplate           = Template::find($templateId)->first();
             $exetemplate            = $findtemplate->update(
                                     [
@@ -157,6 +187,7 @@ class TemplateController extends Controller{
         //         $dataitem, 500
         //     );
         // }
+        */
     }
 
     public function destroy($templateId)
